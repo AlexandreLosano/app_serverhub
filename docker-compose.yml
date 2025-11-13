@@ -1,0 +1,42 @@
+version: '3.8'
+
+# NOTA: MongoDB NÃO está aqui - roda isolado em /home/alosano/projetos/ser_mongodb
+# Conexão: mongodb://admin:admin@192.168.15.15:27017/server_hub?authSource=admin
+
+services:
+  backend:
+    build: ./backend
+    container_name: new-server-hub-backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      MONGO_URI: ${MONGO_URI}
+      PORT: ${PORT:-3000}
+    ports:
+      - "30000:3000"  # Backend acessível na porta 30000
+    volumes:
+      - ./backend/src:/app/src  # HMR em desenvolvimento
+      - ./legacy:/app/legacy    # Acesso aos dados legacy para migração
+    networks:
+      - server-hub-network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  frontend:
+    build: ./frontend
+    container_name: new-server-hub-frontend
+    restart: unless-stopped
+    environment:
+      VITE_API_URL: http://192.168.15.15:30000/api  # URL acessível pelo navegador
+    ports:
+      - "30001:5173"  # Frontend acessível na porta 30001
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend/src:/app/src  # HMR em desenvolvimento
+    networks:
+      - server-hub-network
+
+networks:
+  server-hub-network:
+    driver: bridge

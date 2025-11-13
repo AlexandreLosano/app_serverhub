@@ -1,0 +1,111 @@
+{
+  "variables": {
+    "SERVER_IP": "192.168.15.15",
+    "NOTE_IP": "192.168.2.183",
+    "LOCALHOST": "localhost"
+  },
+  "links": [
+    {
+      "nome": "Airflow",
+      "endereco": "http://{{SERVER_IP}}:8080",
+      "observacoes": "Orquestração de DAGs e workflows de dados",
+      "credenciais": "user: airflow | senha: airflow",
+      "categoria": "Server",
+      "icone": "🌊",
+      "cor": "#017cee",
+      "tags": ["workflow", "automação", "ETL", "dados"]
+    },
+    {
+      "nome": "Portainer - Server",
+      "endereco": "https://{{SERVER_IP}}:9443",
+      "observacoes": "Gerenciamento de containers Docker",
+      "credenciais": "user: admin | senha: senha@1989@senha",
+      "categoria": "Server",
+      "icone": "🐳",
+      "cor": "#13bef9",
+      "tags": ["docker", "containers", "servidor"]
+    },
+    {
+      "nome": "Stirling-PDF",
+      "endereco": "http://{{SERVER_IP}}:9090",
+      "observacoes": "Ferramentas para manipulação de PDF",
+      "credenciais": "",
+      "categoria": "Server",
+      "icone": "📋",
+      "cor": "#bf3682",
+      "tags": ["docker", "ferramenta", "documentos"]
+    },
+    {
+      "nome": "Reddit Visual Viewer",
+      "endereco": "http://{{SERVER_IP}}:3333",
+      "observacoes": "Ferramentas visualizar fotos reddit",
+      "credenciais": "",
+      "categoria": "Server",
+      "icone": "👽",
+      "cor": "#F86F22",
+      "tags": ["docker", "ferramenta", "fotos"]
+    },
+    {
+      "nome": "PHPAdmin",
+      "endereco": "http://{{SERVER_IP}}:8081",
+      "observacoes": "Administração de banco de dados MySQL/MariaDB",
+      "credenciais": "server: reddit-viewer-mysql | user: reddit_user | senha reddit_pass",
+      "categoria": "Server",
+      "icone": "🗄️",
+      "cor": "#6C78AF",
+      "tags": ["database", "mysql", "admin"]
+    },
+    {
+      "nome": "PGAdmin - Note",
+      "endereco": "http://{{NOTE_IP}}:5050",
+      "observacoes": "Administração de PostgreSQL rodando no Notebook",
+      "credenciais": "user: alosano@email.com | senha suasenha123",
+      "categoria": "Note",
+      "icone": "🐘",
+      "cor": "#13BEF9",
+      "tags": ["database", "postgresql", "admin", "notebook"]
+    },
+  
+    {
+      "nome": "Redis Commander",
+      "endereco": "http://{{SERVER_IP}}:8082",
+      "observacoes": "Administração dos Redis",
+      "credenciais": "",
+      "categoria": "Server",
+      "icone": "📕",
+      "cor": "#ff8da1",
+      "tags": ["database", "nosql", "redis", "admin", "server"]
+    },
+    {
+      "nome": "Mongo Express",
+      "endereco": "http://{{SERVER_IP}}:8083",
+      "observacoes": "Administração de MongoDB - Interface web para gerenciar databases e coleções",
+      "credenciais": "Autenticação automática | user: admin | senha: admin",
+      "categoria": "Server",
+      "icone": "🍃",
+      "cor": "#4DB33D",
+      "tags": ["database", "nosql", "mongodb", "admin", "server"]
+    },
+
+    {
+      "nome": "Portainer - Note",
+      "endereco": "http://{{NOTE_IP}}:9000",
+      "observacoes": "Gerenciamento de containers Docker no Notebook",
+      "credenciais": "user: admin | senha: senha@1989@senha",
+      "categoria": "Note",
+      "icone": "🐳",
+      "cor": "#13BEF9",
+      "tags": ["docker", "containers", "notebook"]
+    },
+    {
+      "nome": "GitHub",
+      "endereco": "https://github.com",
+      "observacoes": "Repositórios de código",
+      "credenciais": "user: alexandrelosano@gmail.com | senha Cnn@9703",
+      "categoria": "Externo",
+      "icone": "💻",
+      "cor": "#333333",
+      "tags": ["git", "versionamento", "código"]
+    }
+  ]
+}

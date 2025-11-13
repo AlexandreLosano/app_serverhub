@@ -1,0 +1,151 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Reset e estilos globais */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+/* Scrollbar customizada */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Dark mode scrollbar */
+.dark ::-webkit-scrollbar-track {
+  background: #2d3748;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #4a5568;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #718096;
+}
+
+/* Animações */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeInUp {
+  animation: fadeInUp 0.4s ease-out forwards;
+}
+
+/* Animação escalonada para múltiplos cards */
+.animate-fadeInUp:nth-child(1) { animation-delay: 0.05s; }
+.animate-fadeInUp:nth-child(2) { animation-delay: 0.1s; }
+.animate-fadeInUp:nth-child(3) { animation-delay: 0.15s; }
+.animate-fadeInUp:nth-child(4) { animation-delay: 0.2s; }
+.animate-fadeInUp:nth-child(5) { animation-delay: 0.25s; }
+.animate-fadeInUp:nth-child(6) { animation-delay: 0.3s; }
+.animate-fadeInUp:nth-child(7) { animation-delay: 0.35s; }
+.animate-fadeInUp:nth-child(8) { animation-delay: 0.4s; }
+.animate-fadeInUp:nth-child(9) { animation-delay: 0.45s; }
+.animate-fadeInUp:nth-child(10) { animation-delay: 0.5s; }
+
+/* Variáveis CSS do Legacy - Light Theme */
+:root {
+  /* Backgrounds */
+  --bg-gradient-start: #e3f2fd;
+  --bg-gradient-end: #90caf9;
+
+  /* Text colors */
+  --text-primary: #1a237e;
+  --text-secondary: #283593;
+  --text-muted: #5c6bc0;
+
+  /* Card */
+  --card-bg: #ffffff;
+  --card-border: #bbdefb;
+  --card-shadow: rgba(33, 150, 243, 0.1);
+  --card-shadow-hover: rgba(33, 150, 243, 0.2);
+
+  /* Header */
+  --header-bg: rgba(255, 255, 255, 0.95);
+  --header-text: #0d47a1;
+  --header-shadow: rgba(0, 0, 0, 0.1);
+
+  /* Inputs */
+  --input-bg: #ffffff;
+  --input-border: #90caf9;
+  --input-focus: #42a5f5;
+  --input-text: #1a237e;
+
+  /* Buttons */
+  --btn-primary-bg: #1976d2;
+  --btn-primary-hover: #1565c0;
+  --btn-primary-text: #ffffff;
+}
+
+/* Variáveis CSS do Legacy - Dark Theme */
+.dark {
+  /* Backgrounds */
+  --bg-gradient-start: #0d1b2a;
+  --bg-gradient-end: #1b263b;
+
+  /* Text colors */
+  --text-primary: #e0e7ff;
+  --text-secondary: #c7d2fe;
+  --text-muted: #a5b4fc;
+
+  /* Card */
+  --card-bg: #1e293b;
+  --card-border: #334155;
+  --card-shadow: rgba(0, 0, 0, 0.3);
+  --card-shadow-hover: rgba(0, 0, 0, 0.5);
+
+  /* Header */
+  --header-bg: rgba(30, 41, 59, 0.95);
+  --header-text: #e0e7ff;
+  --header-shadow: rgba(0, 0, 0, 0.3);
+
+  /* Inputs */
+  --input-bg: #1e293b;
+  --input-border: #475569;
+  --input-focus: #60a5fa;
+  --input-text: #e0e7ff;
+
+  /* Buttons */
+  --btn-primary-bg: #3b82f6;
+  --btn-primary-hover: #2563eb;
+  --btn-primary-text: #ffffff;
+}
