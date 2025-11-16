@@ -1,7 +1,7 @@
 version: '3.8'
 
 # NOTA: MongoDB NÃO está aqui - roda isolado em /home/alosano/projetos/ser_mongodb
-# Conexão: mongodb://admin:admin@192.168.15.15:27017/server_hub?authSource=admin
+# Conexão: mongodb://admin:admin@192.168.2.138:27017/server_hub?authSource=admin
 
 services:
   backend:
@@ -27,7 +27,7 @@ services:
     container_name: new-server-hub-frontend
     restart: unless-stopped
     environment:
-      VITE_API_URL: http://192.168.15.15:30000/api  # URL acessível pelo navegador
+      VITE_API_URL: http://192.168.2.138:30000/api  # URL acessível pelo navegador
     ports:
       - "30001:5173"  # Frontend acessível na porta 30001
     depends_on:

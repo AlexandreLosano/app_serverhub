@@ -82,9 +82,17 @@ export const VARIABLE_REGEX = /\{\{([A-Z_]+)\}\}/g;
 export const replaceVariables = (text, variables = {}) => {
   if (!text) return text;
 
-  return text.replace(VARIABLE_REGEX, (match, varName) => {
+  // Substituir variáveis
+  let processedText = text.replace(VARIABLE_REGEX, (match, varName) => {
     return variables[varName] || match;
   });
+
+  // Se a URL não começar com protocolo (http://, https://, etc), adicionar http://
+  if (processedText && !/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(processedText)) {
+    processedText = `http://${processedText}`;
+  }
+
+  return processedText;
 };
 
 // Copiar para clipboard

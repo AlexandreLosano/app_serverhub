@@ -74,10 +74,13 @@ const getLinkById = async (req, res, next) => {
 // @route   POST /api/links
 const createLink = async (req, res, next) => {
   try {
+    console.log('📥 POST /api/links - Recebido:', JSON.stringify(req.body, null, 2));
     const { tags, ...linkData } = req.body;
 
     // Criar o link
+    console.log('💾 Criando link com dados:', JSON.stringify(linkData, null, 2));
     const link = await Link.create(linkData);
+    console.log('✅ Link criado com ID:', link._id);
 
     // Se houver tags, incrementar contador de uso
     if (tags && tags.length > 0) {

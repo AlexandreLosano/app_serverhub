@@ -10,7 +10,7 @@ const Tag = require('../models/Tag');
 const Variable = require('../models/Variable');
 
 // Configuração do MongoDB
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://admin:admin@192.168.15.15:27017/server_hub?authSource=admin';
+const MONGO_URI = process.env.MONGO_URI || 'mongodb://admin:admin@192.168.2.138:27017/server_hub?authSource=admin';
 
 // Cores
 const colors = {

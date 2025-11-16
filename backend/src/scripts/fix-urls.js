@@ -2,7 +2,7 @@
 const mongoose = require('mongoose');
 const Link = require('../models/Link');
 
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://admin:admin@192.168.15.15:27017/server_hub?authSource=admin';
+const MONGO_URI = process.env.MONGO_URI || 'mongodb://admin:admin@192.168.2.138:27017/server_hub?authSource=admin';
 
 const colors = {
   reset: '\x1b[0m',

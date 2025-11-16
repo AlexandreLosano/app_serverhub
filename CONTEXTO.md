@@ -227,7 +227,7 @@ Raiz:
 ┌─────────────────────────────────────────────────────────────────┐
 │  🌐 FRONTEND (Server Hub - Interface Web)                       │
 │  Porta: 30001                                                   │
-│  Acesso: http://192.168.15.15:30001                           │
+│  Acesso: http://192.168.2.138:30001                           │
 │  Container: new-server-hub-frontend                             │
 │  Mapeamento: 30001:5173 (host:container)                       │
 └─────────────────────────────────────────────────────────────────┘
@@ -235,7 +235,7 @@ Raiz:
 ┌─────────────────────────────────────────────────────────────────┐
 │  🔧 BACKEND (API REST - EXPOSTO)                                │
 │  Porta: 30000                                                   │
-│  Acesso: http://192.168.15.15:30000/api                       │
+│  Acesso: http://192.168.2.138:30000/api                       │
 │  Container: new-server-hub-backend                              │
 │  Mapeamento: 30000:3000 (host:container)                       │
 │  Mudança: Exposto na Sessão 5 para corrigir erro de conexão    │
@@ -246,7 +246,7 @@ Raiz:
 │  Porta: 27017                                                   │
 │  Localização: /home/alosano/projetos/ser_mongodb               │
 │  Container: mongodb (SEPARADO deste projeto)                    │
-│  Acesso: mongodb://admin:admin@192.168.15.15:27017            │
+│  Acesso: mongodb://admin:admin@192.168.2.138:27017            │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -254,9 +254,9 @@ Raiz:
 
 | Serviço | Porta Host | Porta Container | Como Acessar |
 |---------|------------|-----------------|--------------|
-| **Interface Web** | **30001** | 5173 | **http://192.168.15.15:30001** ← USE ESTA |
-| **Backend API** | **30000** | 3000 | **http://192.168.15.15:30000/api** ← AGORA EXPOSTA! |
-| MongoDB | 27017 | 27017 | mongodb://192.168.15.15:27017 |
+| **Interface Web** | **30001** | 5173 | **http://192.168.2.138:30001** ← USE ESTA |
+| **Backend API** | **30000** | 3000 | **http://192.168.2.138:30000/api** ← AGORA EXPOSTA! |
+| MongoDB | 27017 | 27017 | mongodb://192.168.2.138:27017 |
 
 ### 🔗 Comunicação entre Containers
 
@@ -275,11 +275,11 @@ Raiz:
 ## 🌐 URLs de Acesso
 
 ### Para VOCÊ (usuário final):
-- **Interface Principal:** http://192.168.15.15:30001 ✅
+- **Interface Principal:** http://192.168.2.138:30001 ✅
 
 ### Para containers (interno):
 - **Backend API:** http://backend:3000/api (usado pelo frontend)
-- **MongoDB:** mongodb://192.168.15.15:27017/server_hub
+- **MongoDB:** mongodb://192.168.2.138:27017/server_hub
 
 ### Endpoints API (funcionando)
 ```
@@ -312,7 +312,7 @@ DELETE /api/variables/:chave     # Deletar
 ### Dados no MongoDB
 - **3 Categorias:** Server, Note, Externo
 - **22 Tags:** workflow, automação, ETL, dados, docker, containers, servidor, ferramenta, documentos, fotos, database, mysql, admin, postgresql, notebook, nosql, redis, server, mongodb, git, versionamento, código
-- **3 Variáveis:** SERVER_IP (192.168.15.15), NOTE_IP (192.168.2.183), LOCALHOST
+- **3 Variáveis:** SERVER_IP (192.168.2.138), NOTE_IP (192.168.2.183), LOCALHOST
 - **10 Links migrados:** Airflow, Portainer (Server/Note), Stirling-PDF, Reddit Visual Viewer, PHPAdmin, PGAdmin, Redis Commander, Mongo Express, GitHub
 
 ---
@@ -332,8 +332,8 @@ docker compose ps
 docker exec -it mongodb mongosh -u admin -p admin --authenticationDatabase admin
 
 # Testar API
-curl http://192.168.15.15:30001/
-curl http://192.168.15.15:30001/api/categories
+curl http://192.168.2.138:30001/
+curl http://192.168.2.138:30001/api/categories
 ```
 
 ---
@@ -417,8 +417,8 @@ curl http://192.168.15.15:30001/api/categories
 **Server Hub v2.0** está 100% funcional, testado e rodando em produção!
 
 **URLs de Acesso:**
-- Frontend: http://192.168.15.15:30001
-- Backend API: http://192.168.15.15:30000/api
-- MongoDB: mongodb://192.168.15.15:27017
+- Frontend: http://192.168.2.138:30001
+- Backend API: http://192.168.2.138:30000/api
+- MongoDB: mongodb://192.168.2.138:27017
 
 **Próximos passos:** Melhorias futuras no frontend (a critério do usuário)

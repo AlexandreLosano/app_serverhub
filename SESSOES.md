@@ -82,7 +82,7 @@
   - [x] `Variable.js`
 - [x] Testar conexão com MongoDB via Docker
 
-**Validação:** ✅ Conexão MongoDB bem-sucedida! Backend rodando em http://192.168.15.15:30001
+**Validação:** ✅ Conexão MongoDB bem-sucedida! Backend rodando em http://192.168.2.138:30001
 
 #### Notas da Sessão
 ```
@@ -100,7 +100,7 @@ Conquistas:
   * Variable.js (variáveis de substituição)
 - Server.js básico funcionando
 - Conexão MongoDB TESTADA E FUNCIONANDO! ✅
-- API respondendo em http://192.168.15.15:30001
+- API respondendo em http://192.168.2.138:30001
 
 Observações:
 - Tempo real foi ~2h (metade do estimado! 🎉)
@@ -290,8 +290,8 @@ Arquivos criados:
 ✅ frontend/.env e .env.example
 
 Containers rodando:
-✅ Backend: http://192.168.15.15:30001 (API)
-✅ Frontend: http://192.168.15.15:5173 (Vite)
+✅ Backend: http://192.168.2.138:30001 (API)
+✅ Frontend: http://192.168.2.138:5173 (Vite)
 ✅ MongoDB: 27017 (container externo)
 
 Observações:
@@ -425,7 +425,7 @@ Observações:
 🚨 IMPORTANTE - CONFIGURAÇÃO DE PORTAS:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ✅ FRONTEND (Interface Web): Porta 30001
-   URL: http://192.168.15.15:30001
+   URL: http://192.168.2.138:30001
    Container: new-server-hub-frontend
    Mapeamento: 30001:5173 (host:container)
 
@@ -468,7 +468,7 @@ Próxima sessão poderia focar em:
 - [x] Identificado erro: `net::ERR_NAME_NOT_RESOLVED`
 - [x] Causa: Frontend tentava acessar `http://backend:3000/api` (hostname interno Docker)
 - [x] Expor porta do backend: `30000:3000` no docker-compose.yml
-- [x] Atualizar `VITE_API_URL` para `http://192.168.15.15:30000/api`
+- [x] Atualizar `VITE_API_URL` para `http://192.168.2.138:30000/api`
 - [x] Rebuild dos containers
 - [x] Validar API acessível externamente
 
@@ -520,10 +520,10 @@ Problema identificado:
 Solução aplicada:
 ✅ docker-compose.yml atualizado:
    - Backend porta exposta: 30000:3000
-   - VITE_API_URL: http://192.168.15.15:30000/api
+   - VITE_API_URL: http://192.168.2.138:30000/api
 
 ✅ frontend/.env atualizado:
-   - VITE_API_URL=http://192.168.15.15:30000/api
+   - VITE_API_URL=http://192.168.2.138:30000/api
 
 ✅ Containers recriados com sucesso
 ✅ API agora acessível pelo navegador
@@ -577,15 +577,15 @@ Observações:
 
 🚨 CONFIGURAÇÃO ATUALIZADA - PORTAS:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-✅ FRONTEND: http://192.168.15.15:30001
+✅ FRONTEND: http://192.168.2.138:30001
    Container: new-server-hub-frontend
    Porta: 30001:5173
 
-✅ BACKEND: http://192.168.15.15:30000/api
+✅ BACKEND: http://192.168.2.138:30000/api
    Container: new-server-hub-backend
    Porta: 30000:3000 (AGORA EXPOSTA!)
 
-✅ MONGODB: mongodb://192.168.15.15:27017
+✅ MONGODB: mongodb://192.168.2.138:27017
    Container: mongodb (externo)
 
 Próximos passos:
@@ -824,7 +824,7 @@ Testes realizados (via curl):
 ✅ PUT /api/links/:id - Link atualizado com sucesso
 ✅ POST /api/links - Link de teste criado
 ✅ DELETE /api/links/:id - Link deletado com sucesso
-✅ Frontend acessível em http://192.168.15.15:30001
+✅ Frontend acessível em http://192.168.2.138:30001
 
 Observações:
 - Tempo real: ~2h (50% do estimado! 🎉)
@@ -990,7 +990,7 @@ Sessão 9 - Dockerização
 - [ ] Testar build: `docker-compose up --build`
 - [ ] Validar HMR funcionando
 - [ ] Testar comunicação entre containers
-- [ ] Testar acesso externo (192.168.15.15)
+- [ ] Testar acesso externo (192.168.2.138)
 
 **Validação:** ✅ Aplicação rodando completamente em containers
 
@@ -1132,9 +1132,9 @@ Observações:
 - Documentação não solicitada
 
 URLs de Acesso:
-✅ Frontend: http://192.168.15.15:30001
-✅ Backend API: http://192.168.15.15:30000/api
-✅ MongoDB: mongodb://192.168.15.15:27017
+✅ Frontend: http://192.168.2.138:30001
+✅ Backend API: http://192.168.2.138:30000/api
+✅ MongoDB: mongodb://192.168.2.138:27017
 
 Resultado Final:
 🎉 SERVER HUB v2.0 - 100% FUNCIONAL E TESTADO! 🎉

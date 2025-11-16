@@ -8,15 +8,15 @@
 
 | Serviço | Porta Host | Porta Container | Exposta? | URL |
 |---------|------------|-----------------|----------|-----|
-| **Frontend** | **30001** | 5173 | ✅ SIM | http://192.168.15.15:30001 |
+| **Frontend** | **30001** | 5173 | ✅ SIM | http://192.168.2.138:30001 |
 | **Backend** | ❌ Nenhuma | 3000 | ❌ NÃO | http://backend:3000/api (interno) |
-| **MongoDB** | 27017 | 27017 | ✅ SIM | mongodb://192.168.15.15:27017 |
+| **MongoDB** | 27017 | 27017 | ✅ SIM | mongodb://192.168.2.138:27017 |
 
 ---
 
 ## ACESSO RÁPIDO
 
-**Interface Web:** http://192.168.15.15:30001
+**Interface Web:** http://192.168.2.138:30001
 
 ---
 

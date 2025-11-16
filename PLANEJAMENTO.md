@@ -30,8 +30,8 @@ Modernizar o Server Hub atual (vanilla JS) para uma stack profissional container
 └─────────────────────────────────────────────────┘
 
 Acesso:
-- Frontend: http://192.168.15.15:5173
-- Backend API: http://192.168.15.15:30001/api ✅ (porta customizada)
+- Frontend: http://192.168.2.138:5173
+- Backend API: http://192.168.2.138:30001/api ✅ (porta customizada)
 - MongoDB: localhost:27017 (acessível por outras apps)
 ```
 
@@ -64,7 +64,7 @@ Acesso:
 - **Container:** Docker isolado em `/home/alosano/projetos/ser_mongodb`
 - **Porta:** 27017 (exposta para outras aplicações)
 - **Credenciais:** admin/admin
-- **Conexão:** `mongodb://admin:admin@192.168.15.15:27017/server_hub?authSource=admin`
+- **Conexão:** `mongodb://admin:admin@192.168.2.138:27017/server_hub?authSource=admin`
 
 ### DevOps
 - **Containerização:** Docker + Docker Compose
@@ -243,7 +243,7 @@ ser_new_server_hub/              # ← NOVO PROJETO
 {
   _id: ObjectId,
   chave: String,             // "SERVER_IP", "NOTE_IP", "LOCALHOST" (unique)
-  valor: String,             // "192.168.15.15"
+  valor: String,             // "192.168.2.138"
   descricao: String,         // Descrição da variável
   criadoEm: Date,            // ✅ (português)
   atualizadoEm: Date         // ✅ (português)
@@ -251,7 +251,7 @@ ser_new_server_hub/              # ← NOVO PROJETO
 ```
 
 **Dados iniciais:**
-- SERVER_IP = 192.168.15.15
+- SERVER_IP = 192.168.2.138
 - NOTE_IP = 192.168.2.183
 - LOCALHOST = localhost
 
@@ -383,7 +383,7 @@ version: '3.8'
 
 services:
   # MongoDB NÃO está aqui - usa o container isolado em ser_mongodb
-  # Conexão: mongodb://admin:admin@192.168.15.15:27017/server_hub?authSource=admin
+  # Conexão: mongodb://admin:admin@192.168.2.138:27017/server_hub?authSource=admin
 
   backend:
     build: ./backend
@@ -391,7 +391,7 @@ services:
     restart: unless-stopped
     environment:
       NODE_ENV: production
-      MONGO_URI: mongodb://admin:admin@192.168.15.15:27017/server_hub?authSource=admin
+      MONGO_URI: mongodb://admin:admin@192.168.2.138:27017/server_hub?authSource=admin
       PORT: 3000
     ports:
       - "30001:3000"  # Host:Container - Acesso externo na 30001, interno na 3000
@@ -407,7 +407,7 @@ services:
     container_name: new-server-hub-frontend
     restart: unless-stopped
     environment:
-      VITE_API_URL: http://192.168.15.15:30001
+      VITE_API_URL: http://192.168.2.138:30001
     ports:
       - "5173:5173"
     depends_on:
@@ -426,14 +426,14 @@ networks:
 
 ```env
 # MongoDB (externo - ser_mongodb)
-MONGO_URI=mongodb://admin:admin@192.168.15.15:27017/server_hub?authSource=admin
+MONGO_URI=mongodb://admin:admin@192.168.2.138:27017/server_hub?authSource=admin
 
 # Backend (porta interna do container)
 NODE_ENV=development
 PORT=3000
 
 # Frontend (usa porta externa do host)
-VITE_API_URL=http://192.168.15.15:30001
+VITE_API_URL=http://192.168.2.138:30001
 ```
 
 ---
@@ -946,7 +946,7 @@ Antes de começar a implementação:
 - [x] MongoDB rodando em `/home/alosano/projetos/ser_mongodb` ✅
 - [x] Database `server_hub` criado ✅
 - [x] 4 coleções criadas (links, tags, categorias, variables) ✅
-- [x] Mongo Express rodando (http://192.168.15.15:8083) ✅
+- [x] Mongo Express rodando (http://192.168.2.138:8083) ✅
 - [ ] Docker e Docker Compose instalados
 - [ ] Node.js 20 LTS instalado
 
