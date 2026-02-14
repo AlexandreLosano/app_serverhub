@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const connectDB = async () => {
   try {
-    const mongoURI = process.env.MONGO_URI || 'mongodb://admin:admin@192.168.2.138:27017/server_hub?authSource=admin';
+    const mongoURI = process.env.MONGO_URI || 'mongodb://admin:admin@host.docker.internal:27017/server_hub?authSource=admin';
 
     await mongoose.connect(mongoURI);
 
