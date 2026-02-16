@@ -6,6 +6,7 @@ export default defineConfig({
   plugins: [react()],
   server: {
     host: true, // Expõe para rede externa
+    allowedHosts: ['hub.serveralosao.cloud'],
     port: 5173,
     watch: {
       usePolling: true, // Necessário para HMR em Docker
