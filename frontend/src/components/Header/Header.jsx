@@ -42,7 +42,7 @@ const Header = ({ onAddLink }) => {
       {/* Título */}
       <div className="flex-1 text-center">
         <h1 className="text-[2.5rem] font-bold drop-shadow-lg" style={{ color: 'var(--header-text)', textShadow: '2px 2px 4px var(--header-shadow)' }}>
-          Server Hub - Zorin 🚀
+          Server Hub - HOSTINGER 🚀
         </h1>
       </div>
 
