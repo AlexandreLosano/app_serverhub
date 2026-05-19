@@ -1,34 +1,24 @@
-// Middleware de tratamento de erros global
-
 const errorHandler = (err, req, res, next) => {
-  let error = { ...err };
-  error.message = err.message;
+  let statusCode = err.statusCode || 500;
+  let message = err.message || 'Erro interno do servidor';
 
-  // Log do erro no console (desenvolvimento)
   console.error('❌ Erro:', err);
 
-  // Mongoose bad ObjectId
-  if (err.name === 'CastError') {
-    const message = 'Recurso não encontrado (ID inválido)';
-    error = { message, statusCode: 404 };
+  // SQLite unique constraint violation
+  if (err.code === 'SQLITE_CONSTRAINT_UNIQUE' || (err.message && err.message.includes('UNIQUE constraint failed'))) {
+    statusCode = 400;
+    message = 'Valor duplicado: este registro já existe.';
   }
 
-  // Mongoose duplicate key
-  if (err.code === 11000) {
-    const field = Object.keys(err.keyValue)[0];
-    const message = `${field} já existe. Por favor, use outro valor.`;
-    error = { message, statusCode: 400 };
+  // SQLite foreign key violation
+  if (err.code === 'SQLITE_CONSTRAINT_FOREIGNKEY' || (err.message && err.message.includes('FOREIGN KEY constraint failed'))) {
+    statusCode = 400;
+    message = 'Referência inválida: registro relacionado não encontrado.';
   }
 
-  // Mongoose validation error
-  if (err.name === 'ValidationError') {
-    const message = Object.values(err.errors).map(val => val.message).join(', ');
-    error = { message, statusCode: 400 };
-  }
-
-  res.status(error.statusCode || 500).json({
+  res.status(statusCode).json({
     success: false,
-    error: error.message || 'Erro interno do servidor',
+    error: message,
     ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
   });
 };

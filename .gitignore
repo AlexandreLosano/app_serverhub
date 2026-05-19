@@ -33,3 +33,9 @@ Thumbs.db
 *.bak
 *.tmp
 .cache/
+
+# SQLite database e exports temporários
+data/*.db
+data/*.json
+data/*.db-shm
+data/*.db-wal

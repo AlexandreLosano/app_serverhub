@@ -1,8 +1,7 @@
 version: '3.8'
 
-# NOTA: MongoDB NÃO está aqui - roda isolado em /home/alosano/repositorios/ser_mongodb
-# MONGO_URI usa host.docker.internal (requer extra_hosts no backend)
-# VITE_API_URL é lida do .env raiz - deve apontar para o IP LAN da máquina host
+# SQLite roda embutido no backend — sem serviço externo de banco de dados.
+# O arquivo database.db fica em ./data/ acessível no host (DB Browser for SQLite).
 
 services:
   backend:
@@ -11,30 +10,29 @@ services:
     restart: unless-stopped
     environment:
       NODE_ENV: ${NODE_ENV:-development}
-      MONGO_URI: ${MONGO_URI}
+      DB_PATH: /app/data/database.db
       PORT: ${PORT:-3000}
     ports:
-      - "30000:3000"  # Backend acessível na porta 30000
+      - "30000:3000"
     volumes:
-      - ./backend/src:/app/src  # HMR em desenvolvimento
-      - ./legacy:/app/legacy    # Acesso aos dados legacy para migração
+      - ./data:/app/data          # arquivo .db persistido e acessível no host
+      - ./backend/src:/app/src    # HMR em desenvolvimento
+      - ./legacy:/app/legacy      # dados legacy para importação
     networks:
       - server-hub-network
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
 
   frontend:
     build: ./frontend
     container_name: new-server-hub-frontend
     restart: unless-stopped
     environment:
-      VITE_API_URL: ${VITE_API_URL}  # Lida do .env raiz - IP LAN acessível pelo navegador
+      VITE_API_URL: ${VITE_API_URL}
     ports:
-      - "30001:5173"  # Frontend acessível na porta 30001
+      - "30001:5173"
     depends_on:
       - backend
     volumes:
-      - ./frontend/src:/app/src  # HMR em desenvolvimento
+      - ./frontend/src:/app/src
     networks:
       - server-hub-network
 

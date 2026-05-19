@@ -1,46 +1,83 @@
-const Link = require('../models/Link');
-const Tag = require('../models/Tag');
+const db = require('../config/database');
+
+const LINK_SELECT = `
+  SELECT
+    l.*,
+    c.nome  AS cat_nome,
+    c.icone AS cat_icone,
+    c.cor   AS cat_cor,
+    (
+      SELECT json_group_array(json_object('_id', CAST(t.id AS TEXT), 'nome', t.nome, 'cor', t.cor))
+      FROM link_tags lt JOIN tags t ON lt.tag_id = t.id
+      WHERE lt.link_id = l.id
+    ) AS tags_json
+  FROM links l
+  LEFT JOIN categories c ON l.categoria_id = c.id
+`;
+
+function formatLink(row) {
+  if (!row) return null;
+  return {
+    _id: String(row.id),
+    nome: row.nome,
+    endereco: row.endereco,
+    observacoes: row.observacoes,
+    credenciais: row.credenciais,
+    categoria: {
+      _id: String(row.categoria_id),
+      nome: row.cat_nome,
+      icone: row.cat_icone,
+      cor: row.cat_cor,
+    },
+    icone: row.icone,
+    cor: row.cor,
+    ordem: row.ordem,
+    ativo: row.ativo === 1,
+    tags: row.tags_json ? JSON.parse(row.tags_json) : [],
+    criadoEm: row.created_at,
+    atualizadoEm: row.updated_at,
+  };
+}
 
 // @desc    Listar todos os links
 // @route   GET /api/links
-// @query   ?categoria=id&tags=tag1,tag2&search=termo&ativo=true
-const getLinks = async (req, res, next) => {
+// @query   ?categoria=id&tags=id1,id2&search=termo&ativo=true
+const getLinks = (req, res, next) => {
   try {
     const { categoria, tags, search, ativo } = req.query;
 
-    // Construir filtro dinâmico
-    const filter = {};
+    const conditions = [];
+    const params = [];
 
     if (categoria) {
-      filter.categoria = categoria;
+      conditions.push('l.categoria_id = ?');
+      params.push(Number(categoria));
     }
 
     if (tags) {
-      const tagArray = tags.split(',');
-      filter.tags = { $in: tagArray };
+      const tagIds = tags.split(',').map(Number).filter(Boolean);
+      if (tagIds.length > 0) {
+        conditions.push(
+          `EXISTS (SELECT 1 FROM link_tags lt2 WHERE lt2.link_id = l.id AND lt2.tag_id IN (${tagIds.map(() => '?').join(',')}))`
+        );
+        params.push(...tagIds);
+      }
     }
 
     if (search) {
-      filter.$or = [
-        { nome: { $regex: search, $options: 'i' } },
-        { observacoes: { $regex: search, $options: 'i' } },
-      ];
+      conditions.push('(l.nome LIKE ? OR l.observacoes LIKE ?)');
+      params.push(`%${search}%`, `%${search}%`);
     }
 
     if (ativo !== undefined) {
-      filter.ativo = ativo === 'true';
+      conditions.push('l.ativo = ?');
+      params.push(ativo === 'true' ? 1 : 0);
     }
 
-    const links = await Link.find(filter)
-      .populate('categoria', 'nome icone cor')
-      .populate('tags', 'nome cor')
-      .sort({ ordem: 1 });
+    const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+    const rows = db.prepare(`${LINK_SELECT} ${where} ORDER BY l.ordem ASC`).all(params);
 
-    res.json({
-      success: true,
-      count: links.length,
-      data: links,
-    });
+    res.json({ success: true, count: rows.length, data: rows.map(formatLink) });
   } catch (error) {
     next(error);
   }
@@ -48,23 +85,15 @@ const getLinks = async (req, res, next) => {
 
 // @desc    Buscar link por ID
 // @route   GET /api/links/:id
-const getLinkById = async (req, res, next) => {
+const getLinkById = (req, res, next) => {
   try {
-    const link = await Link.findById(req.params.id)
-      .populate('categoria', 'nome icone cor')
-      .populate('tags', 'nome cor');
+    const row = db.prepare(`${LINK_SELECT} WHERE l.id = ?`).get(Number(req.params.id));
 
-    if (!link) {
-      return res.status(404).json({
-        success: false,
-        error: 'Link não encontrado',
-      });
+    if (!row) {
+      return res.status(404).json({ success: false, error: 'Link não encontrado' });
     }
 
-    res.json({
-      success: true,
-      data: link,
-    });
+    res.json({ success: true, data: formatLink(row) });
   } catch (error) {
     next(error);
   }
@@ -72,36 +101,31 @@ const getLinkById = async (req, res, next) => {
 
 // @desc    Criar novo link
 // @route   POST /api/links
-const createLink = async (req, res, next) => {
+const createLink = (req, res, next) => {
   try {
     console.log('📥 POST /api/links - Recebido:', JSON.stringify(req.body, null, 2));
-    const { tags, ...linkData } = req.body;
 
-    // Criar o link
-    console.log('💾 Criando link com dados:', JSON.stringify(linkData, null, 2));
-    const link = await Link.create(linkData);
-    console.log('✅ Link criado com ID:', link._id);
+    const { nome, endereco, observacoes = '', credenciais = '', categoria, icone = '🔗', cor = '#4CAF50', ordem = 0, ativo = true, tags = [] } = req.body;
 
-    // Se houver tags, incrementar contador de uso
+    const insert = db.prepare(`
+      INSERT INTO links (nome, endereco, observacoes, credenciais, categoria_id, icone, cor, ordem, ativo)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    const result = insert.run(nome, endereco, observacoes, credenciais, Number(categoria), icone, cor, ordem, ativo ? 1 : 0);
+    const linkId = result.lastInsertRowid;
+
     if (tags && tags.length > 0) {
-      await Tag.updateMany(
-        { _id: { $in: tags } },
-        { $inc: { usoContador: 1 } }
-      );
-
-      link.tags = tags;
-      await link.save();
+      const insertTag = db.prepare('INSERT OR IGNORE INTO link_tags (link_id, tag_id) VALUES (?, ?)');
+      for (const tagId of tags) {
+        insertTag.run(linkId, Number(tagId));
+      }
     }
 
-    // Buscar link populado
-    const populatedLink = await Link.findById(link._id)
-      .populate('categoria', 'nome icone cor')
-      .populate('tags', 'nome cor');
+    const row = db.prepare(`${LINK_SELECT} WHERE l.id = ?`).get(linkId);
+    console.log('✅ Link criado com ID:', linkId);
 
-    res.status(201).json({
-      success: true,
-      data: populatedLink,
-    });
+    res.status(201).json({ success: true, data: formatLink(row) });
   } catch (error) {
     next(error);
   }
@@ -109,60 +133,54 @@ const createLink = async (req, res, next) => {
 
 // @desc    Atualizar link
 // @route   PUT /api/links/:id
-const updateLink = async (req, res, next) => {
+const updateLink = (req, res, next) => {
   try {
-    const link = await Link.findById(req.params.id);
+    const linkId = Number(req.params.id);
+    const existing = db.prepare('SELECT id FROM links WHERE id = ?').get(linkId);
 
-    if (!link) {
-      return res.status(404).json({
-        success: false,
-        error: 'Link não encontrado',
-      });
+    if (!existing) {
+      return res.status(404).json({ success: false, error: 'Link não encontrado' });
     }
 
-    // Se as tags mudaram, atualizar contadores
-    const { tags: newTags, ...updateData } = req.body;
+    const { tags: newTags, categoria, ativo, ...rest } = req.body;
 
-    if (newTags) {
-      const oldTags = link.tags;
+    const fields = [];
+    const params = [];
 
-      // Decrementar tags removidas
-      const removedTags = oldTags.filter(
-        tag => !newTags.includes(tag.toString())
-      );
-      if (removedTags.length > 0) {
-        await Tag.updateMany(
-          { _id: { $in: removedTags } },
-          { $inc: { usoContador: -1 } }
-        );
+    const allowed = ['nome', 'endereco', 'observacoes', 'credenciais', 'icone', 'cor', 'ordem'];
+    for (const key of allowed) {
+      if (rest[key] !== undefined) {
+        fields.push(`${key} = ?`);
+        params.push(rest[key]);
       }
-
-      // Incrementar tags adicionadas
-      const addedTags = newTags.filter(
-        tag => !oldTags.map(t => t.toString()).includes(tag)
-      );
-      if (addedTags.length > 0) {
-        await Tag.updateMany(
-          { _id: { $in: addedTags } },
-          { $inc: { usoContador: 1 } }
-        );
-      }
-
-      updateData.tags = newTags;
     }
 
-    const updatedLink = await Link.findByIdAndUpdate(
-      req.params.id,
-      updateData,
-      { new: true, runValidators: true }
-    )
-      .populate('categoria', 'nome icone cor')
-      .populate('tags', 'nome cor');
+    if (categoria !== undefined) {
+      fields.push('categoria_id = ?');
+      params.push(Number(categoria));
+    }
 
-    res.json({
-      success: true,
-      data: updatedLink,
-    });
+    if (ativo !== undefined) {
+      fields.push('ativo = ?');
+      params.push(ativo ? 1 : 0);
+    }
+
+    if (fields.length > 0) {
+      fields.push('updated_at = CURRENT_TIMESTAMP');
+      params.push(linkId);
+      db.prepare(`UPDATE links SET ${fields.join(', ')} WHERE id = ?`).run(params);
+    }
+
+    if (newTags !== undefined) {
+      db.prepare('DELETE FROM link_tags WHERE link_id = ?').run(linkId);
+      const insertTag = db.prepare('INSERT OR IGNORE INTO link_tags (link_id, tag_id) VALUES (?, ?)');
+      for (const tagId of newTags) {
+        insertTag.run(linkId, Number(tagId));
+      }
+    }
+
+    const row = db.prepare(`${LINK_SELECT} WHERE l.id = ?`).get(linkId);
+    res.json({ success: true, data: formatLink(row) });
   } catch (error) {
     next(error);
   }
@@ -170,32 +188,18 @@ const updateLink = async (req, res, next) => {
 
 // @desc    Deletar link
 // @route   DELETE /api/links/:id
-const deleteLink = async (req, res, next) => {
+const deleteLink = (req, res, next) => {
   try {
-    const link = await Link.findById(req.params.id);
+    const linkId = Number(req.params.id);
+    const existing = db.prepare('SELECT id FROM links WHERE id = ?').get(linkId);
 
-    if (!link) {
-      return res.status(404).json({
-        success: false,
-        error: 'Link não encontrado',
-      });
+    if (!existing) {
+      return res.status(404).json({ success: false, error: 'Link não encontrado' });
     }
 
-    // Decrementar contador de uso das tags
-    if (link.tags && link.tags.length > 0) {
-      await Tag.updateMany(
-        { _id: { $in: link.tags } },
-        { $inc: { usoContador: -1 } }
-      );
-    }
+    db.prepare('DELETE FROM links WHERE id = ?').run(linkId);
 
-    await link.deleteOne();
-
-    res.json({
-      success: true,
-      data: {},
-      message: 'Link removido com sucesso',
-    });
+    res.json({ success: true, data: {}, message: 'Link removido com sucesso' });
   } catch (error) {
     next(error);
   }
@@ -204,38 +208,27 @@ const deleteLink = async (req, res, next) => {
 // @desc    Reordenar links (drag-and-drop)
 // @route   PATCH /api/links/reorder
 // @body    { links: [{ id, ordem }] }
-const reorderLinks = async (req, res, next) => {
+const reorderLinks = (req, res, next) => {
   try {
     const { links } = req.body;
 
     if (!links || !Array.isArray(links)) {
-      return res.status(400).json({
-        success: false,
-        error: 'Array de links é obrigatório',
-      });
+      return res.status(400).json({ success: false, error: 'Array de links é obrigatório' });
     }
 
-    // Atualizar ordem de cada link
-    const updatePromises = links.map(({ id, ordem }) =>
-      Link.findByIdAndUpdate(id, { ordem }, { new: true })
-    );
-
-    await Promise.all(updatePromises);
-
-    res.json({
-      success: true,
-      message: 'Ordem dos links atualizada com sucesso',
+    const update = db.prepare('UPDATE links SET ordem = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?');
+    const reorder = db.transaction((items) => {
+      for (const { id, ordem } of items) {
+        update.run(ordem, Number(id));
+      }
     });
+
+    reorder(links);
+
+    res.json({ success: true, message: 'Ordem dos links atualizada com sucesso' });
   } catch (error) {
     next(error);
   }
 };
 
-module.exports = {
-  getLinks,
-  getLinkById,
-  createLink,
-  updateLink,
-  deleteLink,
-  reorderLinks,
-};
+module.exports = { getLinks, getLinkById, createLink, updateLink, deleteLink, reorderLinks };

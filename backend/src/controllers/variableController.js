@@ -1,16 +1,23 @@
-const Variable = require('../models/Variable');
+const db = require('../config/database');
+
+function formatVariable(row) {
+  if (!row) return null;
+  return {
+    _id: String(row.id),
+    chave: row.chave,
+    valor: row.valor,
+    descricao: row.descricao,
+    criadoEm: row.created_at,
+    atualizadoEm: row.updated_at,
+  };
+}
 
 // @desc    Listar todas as variáveis
 // @route   GET /api/variables
-const getVariables = async (req, res, next) => {
+const getVariables = (req, res, next) => {
   try {
-    const variables = await Variable.find().sort({ chave: 1 });
-
-    res.json({
-      success: true,
-      count: variables.length,
-      data: variables,
-    });
+    const rows = db.prepare('SELECT * FROM variables ORDER BY chave ASC').all();
+    res.json({ success: true, count: rows.length, data: rows.map(formatVariable) });
   } catch (error) {
     next(error);
   }
@@ -18,23 +25,15 @@ const getVariables = async (req, res, next) => {
 
 // @desc    Buscar variável por chave
 // @route   GET /api/variables/:chave
-const getVariableByKey = async (req, res, next) => {
+const getVariableByKey = (req, res, next) => {
   try {
-    const variable = await Variable.findOne({
-      chave: req.params.chave.toUpperCase()
-    });
+    const row = db.prepare('SELECT * FROM variables WHERE chave = ?').get(req.params.chave.toUpperCase());
 
-    if (!variable) {
-      return res.status(404).json({
-        success: false,
-        error: 'Variável não encontrada',
-      });
+    if (!row) {
+      return res.status(404).json({ success: false, error: 'Variável não encontrada' });
     }
 
-    res.json({
-      success: true,
-      data: variable,
-    });
+    res.json({ success: true, data: formatVariable(row) });
   } catch (error) {
     next(error);
   }
@@ -42,14 +41,16 @@ const getVariableByKey = async (req, res, next) => {
 
 // @desc    Criar nova variável
 // @route   POST /api/variables
-const createVariable = async (req, res, next) => {
+const createVariable = (req, res, next) => {
   try {
-    const variable = await Variable.create(req.body);
+    const { chave, valor, descricao = '' } = req.body;
 
-    res.status(201).json({
-      success: true,
-      data: variable,
-    });
+    const result = db.prepare(
+      'INSERT INTO variables (chave, valor, descricao) VALUES (?, ?, ?)'
+    ).run(chave ? chave.toUpperCase().trim() : chave, valor, descricao);
+
+    const row = db.prepare('SELECT * FROM variables WHERE id = ?').get(result.lastInsertRowid);
+    res.status(201).json({ success: true, data: formatVariable(row) });
   } catch (error) {
     next(error);
   }
@@ -57,25 +58,34 @@ const createVariable = async (req, res, next) => {
 
 // @desc    Atualizar variável
 // @route   PUT /api/variables/:chave
-const updateVariable = async (req, res, next) => {
+const updateVariable = (req, res, next) => {
   try {
-    const variable = await Variable.findOneAndUpdate(
-      { chave: req.params.chave.toUpperCase() },
-      req.body,
-      { new: true, runValidators: true }
-    );
+    const chave = req.params.chave.toUpperCase();
+    const existing = db.prepare('SELECT id FROM variables WHERE chave = ?').get(chave);
 
-    if (!variable) {
-      return res.status(404).json({
-        success: false,
-        error: 'Variável não encontrada',
-      });
+    if (!existing) {
+      return res.status(404).json({ success: false, error: 'Variável não encontrada' });
     }
 
-    res.json({
-      success: true,
-      data: variable,
-    });
+    const fields = [];
+    const params = [];
+    const allowed = ['valor', 'descricao'];
+
+    for (const key of allowed) {
+      if (req.body[key] !== undefined) {
+        fields.push(`${key} = ?`);
+        params.push(req.body[key]);
+      }
+    }
+
+    if (fields.length > 0) {
+      fields.push('updated_at = CURRENT_TIMESTAMP');
+      params.push(chave);
+      db.prepare(`UPDATE variables SET ${fields.join(', ')} WHERE chave = ?`).run(params);
+    }
+
+    const row = db.prepare('SELECT * FROM variables WHERE chave = ?').get(chave);
+    res.json({ success: true, data: formatVariable(row) });
   } catch (error) {
     next(error);
   }
@@ -83,33 +93,20 @@ const updateVariable = async (req, res, next) => {
 
 // @desc    Deletar variável
 // @route   DELETE /api/variables/:chave
-const deleteVariable = async (req, res, next) => {
+const deleteVariable = (req, res, next) => {
   try {
-    const variable = await Variable.findOneAndDelete({
-      chave: req.params.chave.toUpperCase()
-    });
+    const chave = req.params.chave.toUpperCase();
+    const existing = db.prepare('SELECT id FROM variables WHERE chave = ?').get(chave);
 
-    if (!variable) {
-      return res.status(404).json({
-        success: false,
-        error: 'Variável não encontrada',
-      });
+    if (!existing) {
+      return res.status(404).json({ success: false, error: 'Variável não encontrada' });
     }
 
-    res.json({
-      success: true,
-      data: {},
-      message: 'Variável removida com sucesso',
-    });
+    db.prepare('DELETE FROM variables WHERE chave = ?').run(chave);
+    res.json({ success: true, data: {}, message: 'Variável removida com sucesso' });
   } catch (error) {
     next(error);
   }
 };
 
-module.exports = {
-  getVariables,
-  getVariableByKey,
-  createVariable,
-  updateVariable,
-  deleteVariable,
-};
+module.exports = { getVariables, getVariableByKey, createVariable, updateVariable, deleteVariable };

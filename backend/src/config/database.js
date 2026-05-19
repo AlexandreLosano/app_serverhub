@@ -1,38 +1,71 @@
-const mongoose = require('mongoose');
+const Database = require('better-sqlite3');
+const path = require('path');
+const fs = require('fs');
 
-const connectDB = async () => {
-  try {
-    const mongoURI = process.env.MONGO_URI || 'mongodb://admin:admin@host.docker.internal:27017/server_hub?authSource=admin';
+const dbPath = process.env.DB_PATH || path.join(__dirname, '../../../../data/database.db');
+const dbDir = path.dirname(dbPath);
 
-    await mongoose.connect(mongoURI);
+if (!fs.existsSync(dbDir)) {
+  fs.mkdirSync(dbDir, { recursive: true });
+}
 
-    console.log('✅ MongoDB conectado com sucesso!');
-    console.log(`📦 Database: ${mongoose.connection.name}`);
-    console.log(`🌐 Host: ${mongoose.connection.host}`);
-  } catch (error) {
-    console.error('❌ Erro ao conectar ao MongoDB:', error.message);
-    process.exit(1);
-  }
-};
+const db = new Database(dbPath);
 
-// Eventos de conexão
-mongoose.connection.on('connected', () => {
-  console.log('🔗 Mongoose conectado ao MongoDB');
-});
+db.pragma('journal_mode = WAL');
+db.pragma('foreign_keys = ON');
 
-mongoose.connection.on('error', (err) => {
-  console.error('❌ Erro na conexão Mongoose:', err);
-});
+db.exec(`
+  CREATE TABLE IF NOT EXISTS categories (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nome TEXT NOT NULL UNIQUE,
+    descricao TEXT DEFAULT '',
+    icone TEXT DEFAULT '📁',
+    cor TEXT DEFAULT '#4CAF50',
+    ordem INTEGER DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
 
-mongoose.connection.on('disconnected', () => {
-  console.log('⚠️ Mongoose desconectado do MongoDB');
-});
+  CREATE TABLE IF NOT EXISTS tags (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nome TEXT NOT NULL UNIQUE,
+    descricao TEXT DEFAULT '',
+    cor TEXT DEFAULT '#2196F3',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
 
-// Graceful shutdown
-process.on('SIGINT', async () => {
-  await mongoose.connection.close();
-  console.log('👋 Conexão MongoDB fechada (app finalizado)');
-  process.exit(0);
-});
+  CREATE TABLE IF NOT EXISTS links (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nome TEXT NOT NULL,
+    endereco TEXT NOT NULL,
+    observacoes TEXT DEFAULT '',
+    credenciais TEXT DEFAULT '',
+    categoria_id INTEGER NOT NULL REFERENCES categories(id),
+    icone TEXT DEFAULT '🔗',
+    cor TEXT DEFAULT '#4CAF50',
+    ordem INTEGER DEFAULT 0,
+    ativo INTEGER DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
 
-module.exports = connectDB;
+  CREATE TABLE IF NOT EXISTS link_tags (
+    link_id INTEGER NOT NULL REFERENCES links(id) ON DELETE CASCADE,
+    tag_id  INTEGER NOT NULL REFERENCES tags(id)  ON DELETE CASCADE,
+    PRIMARY KEY (link_id, tag_id)
+  );
+
+  CREATE TABLE IF NOT EXISTS variables (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    chave TEXT NOT NULL UNIQUE,
+    valor TEXT NOT NULL,
+    descricao TEXT DEFAULT '',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+`);
+
+console.log('✅ SQLite conectado:', dbPath);
+
+module.exports = db;
