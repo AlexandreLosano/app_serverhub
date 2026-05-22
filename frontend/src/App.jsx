@@ -384,7 +384,7 @@ function App() {
           <p className="mb-1">
             Clique no botão "Adicionar Link" para adicionar novos serviços
           </p>
-          <p>Desenvolvido por Alexandre Losano | 2025</p>
+          <p>Desenvolvido por Alexandre Losano</p>
         </footer>
       </div>
 
