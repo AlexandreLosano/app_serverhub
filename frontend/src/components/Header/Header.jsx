@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react';
 import ThemeToggle from '../ThemeToggle/ThemeToggle';
 
+// Endereço que encerra a sessão no Authentik. Definido só no build de produção;
+// sem ele (desenvolvimento) o botão Sair não aparece.
+const LOGOUT_URL = import.meta.env.VITE_LOGOUT_URL;
+
 const Header = ({ onAddLink }) => {
   const [currentTime, setCurrentTime] = useState(new Date());
 
@@ -69,6 +73,18 @@ const Header = ({ onAddLink }) => {
           Adicionar Link
         </button>
         <ThemeToggle />
+        {LOGOUT_URL && (
+          <a
+            href={LOGOUT_URL}
+            title="Sair"
+            className="px-3 py-2 text-[0.9rem] font-semibold bg-gray-100 dark:bg-gray-700 border-2 border-blue-200 dark:border-gray-600
+                       rounded-lg transition-all duration-200 hover:bg-gray-200 dark:hover:bg-gray-600
+                       focus:outline-none focus:ring-2 focus:ring-blue-400 no-underline"
+            style={{ color: 'var(--text-primary)' }}
+          >
+            Sair
+          </a>
+        )}
       </div>
     </header>
   );
