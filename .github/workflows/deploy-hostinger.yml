@@ -1,0 +1,120 @@
+# Deploy na VPS da Hostinger.
+# Dispara a cada atualização da branch "hostinger" (normalmente o merge de um PR).
+# Fluxo: build das imagens -> GHCR -> SSH na VPS -> docker compose pull && up -d.
+#
+# Secrets do environment "production":
+#   VPS_HOST         IP ou hostname da VPS
+#   VPS_USER         usuário de deploy na VPS
+#   VPS_SSH_KEY      chave privada desse usuário
+#   VPS_KNOWN_HOSTS  chave pública do host (saída do ssh-keyscan)
+
+name: Deploy Hostinger
+
+on:
+  push:
+    branches: [hostinger]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-hostinger
+  cancel-in-progress: false
+
+env:
+  REGISTRY: ghcr.io
+  APP_DIR: /srv/app_serverhub
+
+jobs:
+  build:
+    name: Build das imagens
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: docker/setup-buildx-action@v4
+
+      - uses: docker/login-action@v4
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # O GHCR só aceita nome de imagem em minúsculas
+      - name: Nome base das imagens
+        run: echo "IMAGE=${REGISTRY}/${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
+
+      - name: Backend
+        uses: docker/build-push-action@v7
+        with:
+          context: backend
+          file: backend/Dockerfile.prod
+          push: true
+          tags: |
+            ${{ env.IMAGE }}-backend:${{ github.sha }}
+            ${{ env.IMAGE }}-backend:latest
+          cache-from: type=gha,scope=backend
+          cache-to: type=gha,scope=backend,mode=max
+
+      - name: Frontend
+        uses: docker/build-push-action@v7
+        with:
+          context: frontend
+          file: frontend/Dockerfile.prod
+          push: true
+          tags: |
+            ${{ env.IMAGE }}-frontend:${{ github.sha }}
+            ${{ env.IMAGE }}-frontend:latest
+          cache-from: type=gha,scope=frontend
+          cache-to: type=gha,scope=frontend,mode=max
+
+  deploy:
+    name: Deploy na VPS
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://hub.serveralosao.cloud
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Configurar SSH
+        env:
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
+        run: |
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$VPS_KNOWN_HOSTS" > ~/.ssh/known_hosts
+
+      - name: Enviar o compose
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: |
+          scp -i ~/.ssh/deploy_key -o IdentitiesOnly=yes \
+            docker-compose.prod.yml "$VPS_USER@$VPS_HOST:$APP_DIR/docker-compose.yml"
+
+      # O token vale só durante este job; serve para a VPS baixar as imagens do GHCR.
+      - name: Atualizar os containers
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          printf '%s' "$GHCR_TOKEN" | ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes "$VPS_USER@$VPS_HOST" "
+            set -e
+            cd '$APP_DIR'
+            docker login '$REGISTRY' -u '$GITHUB_ACTOR' --password-stdin
+            echo 'IMAGE_TAG=$GITHUB_SHA' > .env
+            docker compose pull
+            docker compose up -d --remove-orphans
+            docker logout '$REGISTRY'
+            docker image prune -f
+            docker compose ps
+          "
