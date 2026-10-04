@@ -1,0 +1,32 @@
+# Imagem de produção do backend (a de desenvolvimento é o Dockerfile).
+
+# Stage 1: instala as dependências, compilando o better-sqlite3 se precisar
+FROM node:20-alpine AS deps
+
+WORKDIR /app
+
+RUN apk add --no-cache python3 make g++
+
+COPY package*.json ./
+
+RUN npm install --omit=dev
+
+# Stage 2: imagem final, sem as ferramentas de compilação
+FROM node:20-alpine
+
+ENV NODE_ENV=production
+
+WORKDIR /app
+
+COPY --from=deps /app/node_modules ./node_modules
+COPY package.json ./
+COPY src ./src
+
+# O volume do banco herda o dono desta pasta
+RUN mkdir -p /app/data && chown node:node /app/data
+
+USER node
+
+EXPOSE 3000
+
+CMD ["node", "src/server.js"]
