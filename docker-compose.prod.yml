@@ -32,9 +32,9 @@ services:
       - traefik.enable=true
       - traefik.http.routers.serverhub.rule=Host(`hub.serveralosao.cloud`)
       - traefik.http.routers.serverhub.entrypoints=websecure
-      # O app não tem login próprio e guarda credenciais: fica atrás da mesma
-      # senha do dashboard do Traefik (middleware definido no vps_infra).
-      - traefik.http.routers.serverhub.middlewares=dashboard-auth@docker
+      # O app não tem login próprio e guarda credenciais: fica atrás do login
+      # do Authentik (middleware definido no repo tool_authentik).
+      - traefik.http.routers.serverhub.middlewares=authentik@docker
       - traefik.http.services.serverhub.loadbalancer.server.port=80
 
 volumes:
