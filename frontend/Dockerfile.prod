@@ -15,6 +15,10 @@ COPY . .
 ARG VITE_API_URL=/api
 ENV VITE_API_URL=$VITE_API_URL
 
+# Botão Sair: encerra a sessão do proxy e do Authentik
+ARG VITE_LOGOUT_URL=https://auth.serveralosao.cloud/outpost.goauthentik.io/sign_out
+ENV VITE_LOGOUT_URL=$VITE_LOGOUT_URL
+
 RUN npm run build
 
 # Stage 2: nginx servindo os arquivos e fazendo proxy da API
